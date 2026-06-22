@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEK-TECH | Ürün Detayı</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .detail-container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .product-main { display: flex; gap: 50px; background: #1a1a1a; padding: 40px; border-radius: 15px; border: 1px solid #333; align-items: flex-start; }
+        
+        .product-image-box { flex: 1; max-width: 500px; background: #252525; padding: 30px; border-radius: 15px; text-align: center; display: flex; align-items: center; justify-content: center; }
+        .product-image-box img { max-width: 100%; max-height: 450px; object-fit: contain; border-radius: 10px; }
+
+        .product-info-box { flex: 1; display: flex; flex-direction: column; }
+        .product-title { font-size: 32px; margin: 15px 0; color: white; line-height: 1.3; }
+        .product-price { font-size: 36px; color: #47dcc3; font-weight: bold; margin-bottom: 25px; }
+        
+        .extra-details { background: #252525; padding: 25px; border-radius: 10px; margin-bottom: 30px; border-left: 4px solid #47dcc3; }
+        .extra-details h4 { color: #47dcc3; margin-bottom: 15px; font-size: 18px; }
+        .extra-details ul { list-style: none; color: #ccc; font-size: 15px; line-height: 2; }
+        .extra-details ul li i { color: #47dcc3; margin-right: 10px; width: 20px; text-align: center; }
+
+        .add-btn { width: 100%; padding: 18px; font-size: 18px; border-radius: 10px; }
+
+        .comments-section { margin-top: 40px; background: #1a1a1a; padding: 40px; border-radius: 15px; border: 1px solid #333; }
+        .comment-card { border-bottom: 1px solid #333; padding: 20px 0; }
+        .comment-card:last-child { border-bottom: none; }
+        
+        /* Yorum Başlığı ve Aksiyon Butonları Stilleri */
+        .comment-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .comment-actions button { background: none; border: none; color: #888; cursor: pointer; margin-left: 15px; font-size: 14px; transition: 0.3s; }
+        .comment-actions button:hover { color: white; }
+        .comment-actions .btn-edit:hover { color: #3498db; }
+        .comment-actions .btn-delete:hover { color: #e74c3c; }
+
+        .comment-form { margin-top: 30px; background: #252525; padding: 25px; border-radius: 10px; transition: 0.3s; border: 1px solid transparent; }
+        .comment-form.edit-mode { border-color: #3498db; box-shadow: 0 0 15px rgba(52, 152, 219, 0.2); }
+        .comment-form textarea { width: 100%; padding: 15px; background: #111; color: white; border: 1px solid #444; border-radius: 8px; margin: 15px 0; resize: vertical; }
+        
+        .cancel-btn { background: none; border: 1px solid #888; color: #888; padding: 15px 30px; border-radius: 8px; cursor: pointer; margin-left: 10px; display: none; }
+        .cancel-btn:hover { background: #333; color: white; }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo" onclick="window.location.href='index.html'" style="cursor:pointer;">TEK<span>TECH</span></div>
+            <div class="user-actions">
+                <div class="action-item" onclick="window.location.href='index.html'"><i class="fas fa-home"></i> Ana Sayfa</div>
+                <div class="action-item" onclick="window.location.href='cart.html'" style="position:relative;">
+                    <i class="fas fa-shopping-cart"></i> Sepetim
+                    <span id="cart-count" class="cart-badge">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="detail-container">
+        <div class="product-main" id="product-area">
+            <p style="color:#888;">Ürün bilgileri yükleniyor...</p>
+        </div>
+
+        <div class="comments-section">
+            <h3><i class="fas fa-comments" style="color: #47dcc3;"></i> Ürün Değerlendirmeleri</h3>
+            <hr style="border-color: #333; margin: 15px 0 25px 0;">
+            
+            <div id="comments-list">Yorumlar yükleniyor...</div>
+            
+            <div id="comment-form-area" class="comment-form">
+                <h4 id="form-title">Yorum Yap</h4>
+                <select id="puan-input" style="padding: 10px; background: #111; color: white; border: 1px solid #444; border-radius: 5px;">
+                    <option value="5">⭐⭐⭐⭐⭐ (5 Yıldız)</option>
+                    <option value="4">⭐⭐⭐⭐ (4 Yıldız)</option>
+                    <option value="3">⭐⭐⭐ (3 Yıldız)</option>
+                    <option value="2">⭐⭐ (2 Yıldız)</option>
+                    <option value="1">⭐ (1 Yıldız)</option>
+                </select>
+                <textarea id="comment-text" rows="4" placeholder="Bu ürün hakkında ne düşünüyorsunuz?"></textarea>
+                
+                <div style="display: flex;">
+                    <button id="submit-comment-btn" class="shop-now-btn" onclick="sendOrUpdateComment()">Yorumu Gönder</button>
+                    <button id="cancel-edit-btn" class="cancel-btn" onclick="resetCommentForm()">İptal Et</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+        const currentUser = localStorage.getItem('user');
+        const user = currentUser ? JSON.parse(currentUser) : null;
+        
+        let editingCommentId = null; // Hangi yorumun düzenlendiğini tutar
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!productId) return;
+            updateCartBadge();
+            
+            try {
+                const pRes = await fetch(`http://localhost:5000/api/products/${productId}`);
+                const product = await pRes.json();
+
+                const stokMetni = product.Stok > 0 
+                    ? `<span style="color:#47dcc3;">${product.Stok} Adet Mevcut</span>` 
+                    : `<span style="color:#e74c3c;">Stokta Yok</span>`;
+
+                document.getElementById('product-area').innerHTML = `
+                    <div class="product-image-box">
+                        <img src="${product.UrunFoto || 'https://via.placeholder.com/500'}" alt="${product.UrunAdi}">
+                    </div>
+                    <div class="product-info-box">
+                        <span class="category-badge" style="align-self: flex-start;">${product.KategoriAdi || 'Genel'}</span>
+                        <h1 class="product-title">${product.UrunAdi}</h1>
+                        <div class="product-price">${product.Fiyat.toLocaleString('tr-TR')} ₺</div>
+                        
+                        <div class="extra-details">
+                            <h4><i class="fas fa-info-circle"></i> Öne Çıkan Bilgiler</h4>
+                            <ul>
+                                <li><i class="fas fa-box-open"></i> <strong>Stok Durumu:</strong> ${stokMetni}</li>
+                                <li><i class="fas fa-shield-alt"></i> <strong>Garanti:</strong> 2 Yıl Resmi Distribütör Garantili</li>
+                                <li><i class="fas fa-truck"></i> <strong>Kargo:</strong> Ücretsiz ve Aynı Gün Teslimat</li>
+                            </ul>
+                        </div>
+                        <button class="shop-now-btn add-btn" onclick="addToCartDetail('${product.UrunID}', '${product.UrunAdi}', ${product.Fiyat})">
+                            <i class="fas fa-shopping-cart"></i> SEPETE EKLE
+                        </button>
+                    </div>`;
+                
+                loadComments();
+            } catch (error) { console.error("Hata:", error); }
+        });
+
+        // 1. Yorumları Yükle (Düzenle ve Sil Butonlarıyla Birlikte)
+        async function loadComments() {
+            const res = await fetch(`http://localhost:5000/api/products/${productId}/comments`);
+            const data = await res.json();
+            
+            document.getElementById('comments-list').innerHTML = data.map(c => {
+                // Eğer giren kullanıcı yorumun sahibiyse aksiyon butonlarını oluştur
+                const isOwner = user && user.MusteriID === c.MusteriID;
+                const safeText = c.YorumMetni.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                
+                const actionButtons = isOwner ? `
+                    <div class="comment-actions">
+                        <button class="btn-edit" onclick="startEdit(${c.YorumID}, '${safeText}', ${c.Puan})"><i class="fas fa-edit"></i> Düzenle</button>
+                        <button class="btn-delete" onclick="deleteComment(${c.YorumID})"><i class="fas fa-trash"></i> Sil</button>
+                    </div>
+                ` : '';
+
+                return `
+                <div class="comment-card">
+                    <div class="comment-header">
+                        <div style="color:#f1c40f; font-size:18px; margin-bottom:10px;">${'★'.repeat(c.Puan)}${'☆'.repeat(5-c.Puan)}</div>
+                        ${actionButtons}
+                    </div>
+                    <p style="color:#ddd; font-size:15px; line-height:1.6;">${c.YorumMetni}</p>
+                    <small style="color:#888; display:block; margin-top:10px;"><i class="fas fa-user-circle"></i> ${c.Fname} ${c.Lname} - <span style="opacity:0.7">${new Date(c.Tarih).toLocaleDateString('tr-TR')}</span></small>
+                </div>`;
+            }).join('') || '<p style="color:#888;">Bu ürüne henüz yorum yapılmamış.</p>';
+        }
+
+        // 2. Yeni Yorum veya Güncelleme Yönlendiricisi
+        function sendOrUpdateComment() {
+            if(editingCommentId) updateComment();
+            else sendComment();
+        }
+
+        // 3. Yeni Yorum Ekle
+        async function sendComment() {
+            const text = document.getElementById('comment-text').value;
+            const puan = document.getElementById('puan-input').value;
+            
+            if(!user) return showToast("Yorum yapabilmek için giriş yapmalısınız!", "error");
+            if(!text.trim()) return showToast("Lütfen bir yorum metni yazın.", "error");
+
+            const res = await fetch('http://localhost:5000/api/add-comment', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ musteriId: user.MusteriID, urunId: productId, puan, metin: text })
+            });
+            
+            if((await res.json()).success) {
+                showToast("Yorumunuz başarıyla eklendi!", "success");
+                resetCommentForm();
+                setTimeout(() => loadComments(), 300);
+            }
+        }
+
+        // 4. Düzenleme Moduna Geç
+        function startEdit(yorumId, metin, puan) {
+            editingCommentId = yorumId;
+            document.getElementById('comment-text').value = metin;
+            document.getElementById('puan-input').value = puan;
+            
+            document.getElementById('form-title').innerText = "Yorumu Düzenle";
+            document.getElementById('form-title').style.color = "#3498db";
+            
+            const btn = document.getElementById('submit-comment-btn');
+            btn.innerText = "Değişiklikleri Kaydet";
+            btn.style.background = "#3498db";
+            
+            document.getElementById('cancel-edit-btn').style.display = "block";
+            document.getElementById('comment-form-area').classList.add('edit-mode');
+
+            // Kullanıcıyı form alanına kaydır
+            document.getElementById('comment-form-area').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // 5. Yorumu Güncelle (PUT)
+        async function updateComment() {
+            const text = document.getElementById('comment-text').value;
+            const puan = document.getElementById('puan-input').value;
+            if(!text.trim()) return showToast("Yorum metni boş olamaz.", "error");
+
+            const res = await fetch(`http://localhost:5000/api/comments/${editingCommentId}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ musteriId: user.MusteriID, puan, metin: text })
+            });
+            
+            if((await res.json()).success) {
+                showToast("Yorumunuz güncellendi!", "success");
+                resetCommentForm();
+                setTimeout(() => loadComments(), 300);
+            }
+        }
+
+        // 6. Yorum Sil (DELETE)
+        async function deleteComment(yorumId) {
+            if(!confirm("Yorumunuzu kalıcı olarak silmek istediğinize emin misiniz?")) return;
+            
+            const res = await fetch(`http://localhost:5000/api/comments/${yorumId}`, {
+                method: 'DELETE',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ musteriId: user.MusteriID })
+            });
+            
+            if((await res.json()).success) {
+                showToast("Yorum başarıyla silindi.", "success");
+                loadComments();
+            }
+        }
+
+        // Formu Orijinal Haline Döndür
+        function resetCommentForm() {
+            editingCommentId = null;
+            document.getElementById('comment-text').value = '';
+            document.getElementById('puan-input').value = '5';
+            
+            document.getElementById('form-title').innerText = "Yorum Yap";
+            document.getElementById('form-title').style.color = "white";
+            
+            const btn = document.getElementById('submit-comment-btn');
+            btn.innerText = "Yorumu Gönder";
+            btn.style.background = "#2ecc71"; // Orijinal yeşil
+            
+            document.getElementById('cancel-edit-btn').style.display = "none";
+            document.getElementById('comment-form-area').classList.remove('edit-mode');
+        }
+
+        // --- Ortak Fonksiyonlar ---
+        function addToCartDetail(id, ad, fiyat) {
+            if(!user) {
+                showToast("Satın alma işlemi için giriş yapmalısınız!", "error");
+                setTimeout(() => { window.location.href = 'login.html'; }, 1500);
+                return;
+            }
+            let sepet = JSON.parse(localStorage.getItem('cart')) || [];
+            const varolan = sepet.find(item => item.id == id);
+            if (varolan) varolan.adet += 1; else sepet.push({ id, ad, fiyat, adet: 1 });
+            localStorage.setItem('cart', JSON.stringify(sepet));
+            updateCartBadge();
+            showToast("Ürün sepete başarıyla eklendi!", "success");
+        }
+
+        function updateCartBadge() {
+            const cartBadge = document.getElementById('cart-count');
+            const sepet = JSON.parse(localStorage.getItem('cart')) || [];
+            if (cartBadge) cartBadge.innerText = sepet.reduce((t, u) => t + u.adet, 0);
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast-msg ${type}`;
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            toast.innerHTML = `<i class="fas ${icon}"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.4s forwards';
+                setTimeout(() => { toast.remove(); }, 400);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

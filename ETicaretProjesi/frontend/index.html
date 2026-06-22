@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEK-TECH | Yeni Nesil Teknoloji</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <header class="main-header">
+    <div class="header-container">
+        <div class="logo" onclick="window.location.href='index.html'">
+            TEK<span>TECH</span>
+        </div>
+
+        <div class="search-bar">
+            <input type="text" id="search-input" placeholder="Aradığınız ürünü veya markayı yazın...">
+            <button id="search-btn"><i class="fas fa-search"></i></button>
+        </div>
+
+        <div class="user-actions">
+            <div class="action-item" id="user-info">
+                <i class="fas fa-user"></i>
+                <span>Giriş Yap</span>
+            </div>
+            
+            <div class="action-item" onclick="window.location.href='cart.html'" style="position:relative;">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Sepetim</span>
+                <span id="cart-count" class="cart-badge">0</span>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <main class="main-content">
+        <div class="container">
+            
+            <aside class="sidebar">
+                <div class="filter-box">
+                    <h3><i class="fas fa-filter"></i> Filtreler</h3>
+                    <hr>
+                    
+                    <div class="filter-section">
+                        <h4>Kategoriler</h4>
+                        <div class="filter-group">
+                            <label><input type="checkbox" class="cat-filter" value="Ekran Kartı"> Ekran Kartı</label>
+                            <label><input type="checkbox" class="cat-filter" value="İşlemci"> İşlemci</label>
+                            <label><input type="checkbox" class="cat-filter" value="Anakart"> Anakart</label>
+                            <label><input type="checkbox" class="cat-filter" value="Monitor"> Monitör</label>
+                            <label><input type="checkbox" class="cat-filter" value="Gaming Ekipman"> Gaming Ekipman</label>
+                        </div>
+                    </div>
+
+                    <div class="filter-section" style="margin-top: 20px;">
+                        <h4>Markalar</h4>
+                        <div class="filter-group">
+                            <label><input type="checkbox" class="brand-filter" value="ASUS"> ASUS</label>
+                            <label><input type="checkbox" class="brand-filter" value="MSI"> MSI</label>
+                            <label><input type="checkbox" class="brand-filter" value="AMD"> AMD</label>
+                            <label><input type="checkbox" class="brand-filter" value="Razer"> Razer</label>
+                            <label><input type="checkbox" class="brand-filter" value="Logitech"> Logitech</label>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="products-section">
+                <h2 class="section-title">ÇOK SATAN ÜRÜNLER</h2>
+                <div class="product-grid" id="product-grid">
+                    <p style="color: #888;">Ürünler yükleniyor...</p>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <footer style="background: #1a1a1a; color: #666; text-align: center; padding: 40px 0; border-top: 1px solid #333; margin-top: 50px;">
+        <p>&copy; 2026 TEK-TECH Teknoloji. Tüm Hakları Saklıdır.</p>
+    </footer>
+
+    <script src="app.js"></script>
+    
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>TEK-TECH | Ödeme ve Teslimat</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background: #0f0f0f; color: white; font-family: sans-serif; padding: 20px; }
+        .checkout-container { max-width: 600px; margin: auto; background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #333; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #aaa; font-size: 14px; }
+        input { width: 100%; padding: 12px; background: #252525; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; }
+        .checkout-btn { width: 100%; padding: 15px; background: #47dcc3; color: black; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        #success-screen { display: none; text-align: center; }
+        .kargo-box { background: #222; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 5px solid #47dcc3; text-align: left; }
+    </style>
+</head>
+<body>
+
+    <div style="max-width: 600px; margin: 0 auto 20px; font-size: 24px; font-weight: bold; color: white; cursor: pointer;" onclick="window.location.href='index.html'">
+        TEK<span style="color: #47dcc3;">TECH</span>
+    </div>
+
+    <div class="checkout-container">
+        <div id="checkout-form">
+            <h2 style="color:#47dcc3"><i class="fas fa-truck"></i> Teslimat Adresi</h2>
+            <div style="display:flex; gap:10px;">
+                <div class="input-group" style="flex:1"><label>İl</label><input type="text" id="il" placeholder="Örn: Ankara"></div>
+                <div class="input-group" style="flex:1"><label>İlçe</label><input type="text" id="ilce" placeholder="Örn: Çankaya"></div>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <div class="input-group" style="flex:1"><label>Mahalle</label><input type="text" id="mahalle" placeholder="Örn: Merkez Mah."></div>
+                <div class="input-group" style="flex:1"><label>Sokak/No</label><input type="text" id="sokak" placeholder="Örn: Papatya Sok. 5/1"></div>
+            </div>
+
+            <h2 style="color:#47dcc3; margin-top:30px;"><i class="fas fa-credit-card"></i> Ödeme Bilgileri</h2>
+            <div class="input-group"><label>Kart Numarası</label><input type="text" id="kartNo" maxlength="16" placeholder="0000 0000 0000 0000"></div>
+            <div style="display:flex; gap:10px;">
+                <div class="input-group" style="flex:1"><label>Son Kullanma</label><input type="text" id="sk" placeholder="AA/YY"></div>
+                <div class="input-group" style="flex:1"><label>CVV</label><input type="password" id="cvv" maxlength="3" placeholder="123"></div>
+            </div>
+
+            <button class="checkout-btn" onclick="siparisOnayla()">SİPARİŞİ TAMAMLA</button>
+            <p id="msg" style="text-align:center; color:#e74c3c; margin-top:10px;"></p>
+        </div>
+
+        <div id="success-screen">
+            <i class="fas fa-check-circle" style="font-size: 70px; color: #47dcc3;"></i>
+            <h1 style="color: #47dcc3;">SİPARİŞİNİZ ALINDI!</h1>
+            <p>Ürünleriniz en kısa sürede yola çıkacaktır.</p>
+            <div class="kargo-box">
+                <p><b>Durum:</b> <span id="k-durum"></span></p>
+                <p><b>Takip Kodu:</b> <span id="k-takip"></span></p>
+                <p><b>Tahmini Teslimat:</b> <span id="k-teslim"></span></p>
+            </div>
+            <button class="checkout-btn" onclick="window.location.href='profile.html'">Siparişlerime Git</button>
+        </div>
+    </div>
+
+    <script>
+        let dbSepet = [];
+        const currUser = localStorage.getItem('user');
+        const user = currUser ? JSON.parse(currUser) : null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!user) { window.location.href = 'login.html'; return; }
+            
+            try {
+                // Sayfa açıldığında sepeti veritabanından çekip hazırda bekletiyoruz
+                const res = await fetch(`http://localhost:5000/api/cart/${user.MusteriID}`);
+                const data = await res.json();
+                dbSepet = data.map(item => ({ id: item.id, fiyat: item.fiyat, adet: item.Adet }));
+            } catch(e) { console.error("Sepet çekilemedi"); }
+        });
+
+        async function siparisOnayla() {
+            const msg = document.getElementById('msg');
+            const il = document.getElementById('il').value;
+            const ilce = document.getElementById('ilce').value;
+            const kartNo = document.getElementById('kartNo').value;
+            // YENİ: Arayüzden eksik olan değerleri de alıyoruz
+            const sk = document.getElementById('sk').value; 
+            const cvv = document.getElementById('cvv').value;
+
+            // YENİ: Boş alan kontrolüne sk ve cvv'yi de ekledik
+            if(!il || !ilce || !kartNo || !sk || !cvv || dbSepet.length === 0) {
+                msg.innerText = "Lütfen tüm bilgileri doldurun ve sepetin dolu olduğundan emin olun!";
+                return;
+            }
+
+            try {
+                // Veritabanındaki checkout API'sine verileri yolluyoruz
+                const response = await fetch('http://localhost:5000/api/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    // YENİ: Backend'in beklediği kartNo, sonKullanma ve cvv bilgilerini gönderiyoruz
+                    body: JSON.stringify({ 
+                        musteriId: user.MusteriID, 
+                        sepet: dbSepet,
+                        kartNo: kartNo,
+                        sonKullanma: sk,
+                        cvv: cvv
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById('checkout-form').style.display = 'none';
+                    document.getElementById('success-screen').style.display = 'block';
+                    
+                    // Kargo detaylarını ekrana yazdırıyoruz
+                    document.getElementById('k-durum').innerText = result.kargo.durumu;
+                    document.getElementById('k-takip').innerText = result.kargo.takipKodu;
+                    document.getElementById('k-teslim').innerText = result.kargo.tahminiTeslim;
+
+                } else { msg.innerText = "Hata: " + (result.message || "Bilinmeyen hata"); }
+            } catch (err) { msg.innerText = "Sunucuya bağlanılamadı!"; }
+        }
+    </script>
+</body>
+</html>

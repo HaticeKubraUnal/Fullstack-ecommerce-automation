@@ -1,0 +1,20 @@
+SELECT * FROM KART;
+SELECT * FROM ODEME;
+
+SELECT * FROM MUSTERI;
+
+
+
+
+CREATE OR ALTER TRIGGER trg_StokDusur
+ON SIPARIS_DETAY
+AFTER INSERT
+AS
+BEGIN
+    UPDATE URUN
+    SET Stok = Stok - i.Adet
+    FROM URUN u
+    INNER JOIN inserted i ON u.UrunID = i.UrunID;
+END;
+
+

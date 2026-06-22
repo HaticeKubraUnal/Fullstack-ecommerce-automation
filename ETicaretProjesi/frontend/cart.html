@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEK-TECH | Sepetim</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .cart-container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: flex; gap: 30px; align-items: flex-start; }
+        
+        .cart-items { flex: 2; background: #1a1a1a; padding: 30px; border-radius: 15px; border: 1px solid #333; }
+        .cart-item { display: flex; align-items: center; gap: 20px; padding: 20px 0; border-bottom: 1px solid #333; }
+        .cart-item:last-child { border-bottom: none; }
+        .cart-item img { width: 100px; height: 100px; object-fit: contain; background: #252525; padding: 10px; border-radius: 10px; }
+        
+        .item-info { flex: 1; }
+        .item-info h3 { color: white; margin: 0 0 10px 0; font-size: 18px; }
+        .item-price { color: #47dcc3; font-weight: bold; font-size: 20px; }
+        
+        .item-actions { display: flex; align-items: center; gap: 15px; }
+        .remove-btn { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 16px; transition: 0.3s; display: flex; align-items: center; gap: 5px; }
+        .remove-btn:hover { color: #c0392b; }
+
+        /* Artı Eksi Buton Stilleri */
+        .qty-controls { display: flex; align-items: center; background: #252525; border: 1px solid #444; border-radius: 6px; overflow: hidden; }
+        .qty-btn { background: #333; color: white; border: none; padding: 8px 12px; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .qty-btn:hover { background: #47dcc3; color: #111; }
+        .qty-val { color: #47dcc3; font-weight: bold; padding: 0 15px; background: #111; min-width: 20px; text-align: center; }
+
+        .cart-summary { flex: 1; background: #252525; padding: 30px; border-radius: 15px; border: 1px solid #333; position: sticky; top: 20px; }
+        .cart-summary h3 { color: white; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 15px; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 15px; color: #ccc; }
+        .summary-total { font-size: 24px; color: #47dcc3; font-weight: bold; border-top: 1px solid #444; padding-top: 15px; margin-top: 15px; }
+        
+        .checkout-btn { width: 100%; padding: 15px; background: #47dcc3; color: #111; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        .checkout-btn:hover { background: #36b09b; }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo" onclick="window.location.href='index.html'" style="cursor:pointer;">TEK<span style="color:#47dcc3">TECH</span></div>
+            <div class="user-actions"></div>
+        </div>
+    </header>
+
+    <div class="cart-container">
+        <div class="cart-items">
+            <h2 style="color:white; margin-bottom:20px;"><i class="fas fa-shopping-cart" style="color: #47dcc3;"></i> Alışveriş Sepeti</h2>
+            <div id="cart-items-container">
+                <p style="color:#888;">Sepetiniz yükleniyor...</p>
+            </div>
+        </div>
+
+        <div class="cart-summary" id="cart-summary" style="display: none;">
+            <h3>Sipariş Özeti</h3>
+            <div class="summary-row">
+                <span>Kargo Tutarı</span>
+                <span style="color:#47dcc3;">Bedava</span>
+            </div>
+            <div class="summary-row summary-total">
+                <span>Toplam:</span>
+                <span id="total-price">0 ₺</span>
+            </div>
+            <button class="checkout-btn" onclick="window.location.href='checkout.html'">
+                <i class="fas fa-credit-card"></i> ÖDEME ADIMINA GEÇ
+            </button>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="app.js"></script>
+    <script>
+        const currUser = localStorage.getItem('user');
+        const user = currUser ? JSON.parse(currUser) : null;
+
+        document.addEventListener('DOMContentLoaded', () => { loadCart(); });
+
+        async function loadCart() {
+            const container = document.getElementById('cart-items-container');
+            const summary = document.getElementById('cart-summary');
+            
+            if (!user) {
+                container.innerHTML = '<p style="color:#e74c3c; font-size:18px;">Sepetinizi görmek için lütfen giriş yapın.</p>';
+                summary.style.display = 'none'; return;
+            }
+
+            try {
+                const res = await fetch(`http://localhost:5000/api/cart/${user.MusteriID}`);
+                const data = await res.json(); 
+
+                if (data.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align:center; padding: 40px 0;">
+                            <i class="fas fa-box-open" style="font-size: 50px; color: #444; margin-bottom:15px;"></i>
+                            <p style="color:#888; font-size:18px;">Sepetiniz şu an boş. Alışverişe başlamak için ürünlere göz atın!</p>
+                            <button onclick="window.location.href='index.html'" class="checkout-btn" style="width: auto; padding: 10px 20px; display: inline-block;">Alışverişe Başla</button>
+                        </div>`;
+                    summary.style.display = 'none'; return;
+                }
+
+                summary.style.display = 'block';
+                let total = 0;
+
+                container.innerHTML = data.map(item => {
+                    total += (item.fiyat * item.Adet);
+                    return `
+                    <div class="cart-item">
+                        <img src="${item.foto || 'https://via.placeholder.com/100'}" alt="${item.ad}">
+                        <div class="item-info">
+                            <h3>${item.ad}</h3>
+                            <p class="item-price">${parseFloat(item.fiyat).toLocaleString('tr-TR')} ₺</p>
+                        </div>
+                        <div class="item-actions">
+                            <div class="qty-controls">
+                                <button class="qty-btn" onclick="decreaseQty(${item.id})"><i class="fas fa-minus"></i></button>
+                                <span class="qty-val">${item.Adet}</span>
+                                <button class="qty-btn" onclick="increaseQty(${item.id})"><i class="fas fa-plus"></i></button>
+                            </div>
+                            <button class="remove-btn" onclick="removeFromCart(${item.id})"><i class="fas fa-trash"></i> Sil</button>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                document.getElementById('total-price').innerText = total.toLocaleString('tr-TR') + ' ₺';
+            } catch (err) { container.innerHTML = '<p style="color:#e74c3c;">Sepet yüklenirken hata oluştu.</p>'; }
+        }
+
+        // Miktarı Arttır
+        async function increaseQty(urunId) {
+            await fetch('http://localhost:5000/api/cart/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ musteriId: user.MusteriID, urunId: urunId })
+            });
+            loadCart(); if (typeof updateCartBadge === "function") updateCartBadge();
+        }
+
+        // Miktarı Azalt
+        async function decreaseQty(urunId) {
+            await fetch('http://localhost:5000/api/cart/decrease', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ musteriId: user.MusteriID, urunId: urunId })
+            });
+            loadCart(); if (typeof updateCartBadge === "function") updateCartBadge();
+        }
+
+        // Tamamen Sil
+        async function removeFromCart(urunId) {
+            await fetch('http://localhost:5000/api/cart/remove', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ musteriId: user.MusteriID, urunId: urunId })
+            });
+            if(typeof window.showToast === "function") window.showToast("Ürün sepetten silindi", "success");
+            loadCart(); if (typeof updateCartBadge === "function") updateCartBadge();
+        }
+    </script>
+</body>
+</html>

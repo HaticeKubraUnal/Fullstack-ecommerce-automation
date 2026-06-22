@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEK-TECH | Kayıt Ol</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Kayıt Ol Sayfasına Özel Tasarım */
+        body {
+            background-color: #121212;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 450px;
+            background: #1a1a1a;
+            padding: 40px;
+            border-radius: 10px;
+            border: 1px solid #47dcc3;
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.1);
+        }
+
+        .auth-container h2 {
+            text-align: center;
+            color: #47dcc3;
+            margin-bottom: 30px;
+            font-size: 26px;
+            letter-spacing: 1px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            flex: 1;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px;
+            background: #252525;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: white;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #47dcc3;
+            background: #1a1a1a;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 15px;
+            background: #47dcc3;
+            color: #111;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        .auth-btn:hover {
+            background: #47dcc3;
+        }
+
+        .auth-links {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .auth-links a {
+            color: #47dcc3;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .auth-links a:hover {
+            color: #47dcc3;
+        }
+
+        .error-msg {
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-container">
+        <h2>HESAP OLUŞTUR</h2>
+        
+        <div class="input-row">
+            <div class="input-group">
+                <label><i class="fas fa-user"></i> Ad</label>
+                <input type="text" id="ad-input" placeholder="Adınız">
+            </div>
+            <div class="input-group">
+                <label>Soyad</label>
+                <input type="text" id="soyad-input" placeholder="Soyadınız">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label><i class="fas fa-envelope"></i> E-posta</label>
+            <input type="email" id="email-input" placeholder="E-posta adresiniz">
+        </div>
+
+        <div class="input-group">
+            <label><i class="fas fa-phone"></i> Telefon</label>
+            <input type="tel" id="telefon-input" placeholder="Örn: 05551234567">
+        </div>
+
+        <div class="input-group">
+            <label><i class="fas fa-lock"></i> Şifre</label>
+            <input type="password" id="password-input" placeholder="••••••">
+        </div>
+        
+        <button class="auth-btn" id="register-btn">HESABIMI OLUŞTUR</button>
+        
+        <div id="error-message" class="error-msg"></div>
+        
+        <div class="auth-links">
+            Zaten hesabın var mı? <a href="login.html">Giriş Yap</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('register-btn').addEventListener('click', async () => {
+            const fname = document.getElementById('ad-input').value.trim();
+            const lname = document.getElementById('soyad-input').value.trim();
+            const email = document.getElementById('email-input').value.trim();
+            const telefon = document.getElementById('telefon-input').value.trim();
+            const password = document.getElementById('password-input').value;
+            const errorDiv = document.getElementById('error-message');
+
+            // 1. Boş Alan Kontrolü
+            if(!fname || !lname || !email || !telefon || !password) {
+                errorDiv.innerText = "Hata: Lütfen tüm alanları eksiksiz doldurun.";
+                return;
+            }
+
+            try {
+                // 2. Verileri Sunucuya Gönder
+                const res = await fetch('http://localhost:5000/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fname, lname, email, telefon, password })
+                });
+                
+                const data = await res.json();
+                
+                // 3. Sonuca Göre Yönlendirme Yap
+                if(data.success) {
+                    errorDiv.style.color = "#2ecc71"; // Başarılıysa yeşil yazsın
+                    errorDiv.innerText = "Hesap başarıyla oluşturuldu! Yönlendiriliyorsunuz...";
+                    
+                    // 1.5 saniye sonra giriş sayfasına at
+                    setTimeout(() => {
+                        window.location.href = "login.html";
+                    }, 1500);
+                } else {
+                    errorDiv.style.color = "#e74c3c";
+                    errorDiv.innerText = "Kayıt Başarısız: " + data.message;
+                }
+            } catch (error) {
+                errorDiv.style.color = "#e74c3c";
+                errorDiv.innerText = "Sunucuya bağlanılamadı. Lütfen sunucunun (server.js) çalıştığından emin olun.";
+            }
+        });
+    </script>
+</body>
+</html>

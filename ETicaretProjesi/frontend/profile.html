@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEK-TECH | Hesabım</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .profile-container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: flex; gap: 30px; align-items: flex-start; }
+        
+        /* Sol Menü (Kullanıcı Bilgileri) */
+        .profile-sidebar { flex: 1; background: #1a1a1a; padding: 30px; border-radius: 15px; border: 1px solid #333; text-align: center; }
+        .profile-avatar { width: 100px; height: 100px; background: #47dcc3; color: #111; font-size: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px; font-weight: bold; }
+        .profile-name { font-size: 24px; color: white; margin-bottom: 5px; }
+        .profile-email { color: #888; margin-bottom: 20px; font-size: 14px; }
+        .profile-info-list { text-align: left; margin-top: 20px; border-top: 1px solid #333; padding-top: 20px; }
+        .profile-info-list p { color: #ccc; margin-bottom: 15px; font-size: 15px; display: flex; align-items: center; gap: 10px; }
+        .profile-info-list i { color: #47dcc3; width: 20px; text-align: center; }
+
+        /* Sağ İçerik Alanı */
+        .profile-content { flex: 3; display: flex; flex-direction: column; gap: 30px; }
+        
+        /* Kart Stilleri */
+        .section-card { background: #1a1a1a; padding: 30px; border-radius: 15px; border: 1px solid #333; }
+        .section-title { font-size: 22px; color: #47dcc3; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #333; padding-bottom: 15px; }
+
+        /* Sipariş Kutuları */
+        .order-box { background: #252525; border-radius: 10px; padding: 20px; margin-bottom: 15px; border-left: 4px solid #3498db; }
+        .order-header { display: flex; justify-content: space-between; margin-bottom: 15px; color: #aaa; font-size: 14px; }
+        .order-item { display: flex; gap: 15px; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #444; }
+        .order-item img { width: 60px; height: 60px; object-fit: contain; background: #fff; border-radius: 5px; padding: 5px; }
+        .order-item-info h4 { color: white; margin: 0 0 5px 0; cursor: pointer; transition: 0.3s; }
+        .order-item-info h4:hover { color: #47dcc3; }
+        .order-item-info p { color: #47dcc3; font-weight: bold; margin: 0; }
+
+        /* Yorum Kutuları */
+        .comment-box { background: #252525; border-radius: 10px; padding: 20px; margin-bottom: 15px; }
+        .comment-product { color: #3498db; font-weight: bold; cursor: pointer; margin-bottom: 10px; display: inline-block; }
+        .comment-product:hover { text-decoration: underline; }
+        .stars { color: #f1c40f; margin-bottom: 10px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo" onclick="window.location.href='index.html'" style="cursor:pointer;">TEK<span>TECH</span></div>
+            <div class="user-actions">
+                <div class="action-item" onclick="window.location.href='index.html'"><i class="fas fa-home"></i> Ana Sayfa</div>
+                <div class="action-item" onclick="window.location.href='cart.html'">
+                    <i class="fas fa-shopping-cart"></i> Sepetim
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="profile-container">
+        
+        <div class="profile-sidebar">
+            <div class="profile-avatar" id="user-avatar">?</div>
+            <h2 class="profile-name" id="user-name">Yükleniyor...</h2>
+            <p class="profile-email" id="user-email">...</p>
+            
+            <div class="profile-info-list">
+                <p><i class="fas fa-phone"></i> <span id="user-phone">...</span></p>
+                <p><i class="fas fa-user-shield"></i> Doğrulanmış Müşteri</p>
+                <button onclick="logout()" style="width:100%; padding:10px; margin-top:20px; background:#e74c3c; color:white; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">
+                    <i class="fas fa-sign-out-alt"></i> Çıkış Yap
+                </button>
+            </div>
+        </div>
+
+        <div class="profile-content">
+            
+            <div class="section-card">
+                <h3 class="section-title"><i class="fas fa-box"></i> Sipariş Geçmişim</h3>
+                <div id="orders-container">
+                    <p style="color:#888;">Siparişleriniz yükleniyor...</p>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3 class="section-title"><i class="fas fa-comments"></i> Değerlendirmelerim</h3>
+                <div id="comments-container">
+                    <p style="color:#888;">Yorumlarınız yükleniyor...</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const currentUser = localStorage.getItem('user');
+        if (!currentUser) {
+            window.location.href = 'login.html'; // Giriş yapmayanları dışarı at
+        }
+
+        const user = JSON.parse(currentUser);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Sol Paneli Doldur
+            document.getElementById('user-avatar').innerText = user.Fname.charAt(0).toUpperCase();
+            document.getElementById('user-name').innerText = `${user.Fname} ${user.Lname}`;
+            document.getElementById('user-email').innerText = user.Email;
+            document.getElementById('user-phone').innerText = user.Telefon || "Telefon eklenmemiş";
+
+            // 2. Verileri Çek
+            fetchOrders();
+            fetchComments();
+        });
+
+        // Çıkış Yap
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+
+        // --- SİPARİŞLERİ GETİR ---
+        async function fetchOrders() {
+            const container = document.getElementById('orders-container');
+            try {
+                const res = await fetch(`http://localhost:5000/api/user/${user.MusteriID}/orders`);
+                const orders = await res.json();
+
+                if (orders.length === 0) {
+                    container.innerHTML = '<p style="color:#888;">Henüz hiç siparişiniz bulunmuyor.</p>';
+                    return;
+                }
+
+                // Siparişleri ID'ye göre grupla ve durum/kargo bilgilerini sakla
+                const groupedOrders = orders.reduce((acc, curr) => {
+                    if (!acc[curr.SiparisID]) {
+                        acc[curr.SiparisID] = { 
+                            id: curr.SiparisID, 
+                            tarih: curr.Tarih, 
+                            durum: curr.SiparisDurumu || 'Hazırlanıyor',
+                            kargo: curr.KargoTakipKodu || 'Bekleniyor',
+                            urunler: [] 
+                        };
+                    }
+                    acc[curr.SiparisID].urunler.push(curr);
+                    return acc;
+                }, {});
+
+                container.innerHTML = Object.values(groupedOrders).map(siparis => `
+                    <div class="order-box">
+                        <div class="order-header" style="align-items: center; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 15px;">
+                            <div>
+                                <strong style="color: white; font-size: 16px;">Sipariş No: #${siparis.id}</strong>
+                                <span style="display: block; color: #aaa; margin-top: 5px;"><i class="far fa-calendar-alt"></i> ${new Date(siparis.tarih).toLocaleDateString('tr-TR')}</span>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="background: rgba(243, 156, 18, 0.15); color: #f39c12; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; border: 1px solid #f39c12; display: inline-block; margin-bottom: 8px;">
+                                    <i class="fas fa-box-open"></i> ${siparis.durum}
+                                </span>
+                                <div style="font-size: 13px; color: #888;">Takip Kodu: <span style="color: #3498db; font-weight: bold; letter-spacing: 1px;">${siparis.kargo}</span></div>
+                            </div>
+                        </div>
+                        ${siparis.urunler.map(urun => `
+                            <div class="order-item" style="border-top: none; padding-top: 0;">
+                                <img src="${urun.UrunFoto || 'https://via.placeholder.com/60'}" alt="${urun.UrunAdi}">
+                                <div class="order-item-info">
+                                    <h4 onclick="window.location.href='product-detail.html?id=${urun.UrunID}'">${urun.UrunAdi}</h4>
+                                    <p>${urun.Adet} Adet - ${(urun.Fiyat * urun.Adet).toLocaleString('tr-TR')} ₺</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `).join('');
+
+            } catch (err) {
+                container.innerHTML = '<p style="color:#e74c3c;">Siparişler yüklenirken bir hata oluştu.</p>';
+            }
+        }
+
+        // --- YORUMLARI GETİR ---
+        async function fetchComments() {
+            const container = document.getElementById('comments-container');
+            try {
+                const res = await fetch(`http://localhost:5000/api/user/${user.MusteriID}/comments`);
+                const comments = await res.json();
+
+                if (comments.length === 0) {
+                    container.innerHTML = '<p style="color:#888;">Henüz hiçbir ürünü değerlendirmediniz.</p>';
+                    return;
+                }
+
+                container.innerHTML = comments.map(c => `
+                    <div class="comment-box">
+                        <div class="comment-product" onclick="window.location.href='product-detail.html?id=${c.UrunID}'">
+                            <i class="fas fa-link"></i> ${c.UrunAdi}
+                        </div>
+                        <div class="stars">${'★'.repeat(c.Puan)}${'☆'.repeat(5-c.Puan)}</div>
+                        <p style="color:#ddd; line-height:1.5;">${c.YorumMetni}</p>
+                        <small style="color:#888; display:block; margin-top:10px;">
+                            <i class="fas fa-calendar-alt"></i> ${new Date(c.Tarih).toLocaleDateString('tr-TR')}
+                        </small>
+                    </div>
+                `).join('');
+
+            } catch (err) {
+                container.innerHTML = '<p style="color:#e74c3c;">Yorumlar yüklenirken bir hata oluştu.</p>';
+            }
+        }
+    </script>
+</body>
+</html>
