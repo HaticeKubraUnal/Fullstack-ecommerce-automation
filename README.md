@@ -37,3 +37,9 @@ This project was developed as a collaborative group effort. Special thanks to th
 * **Hatice Kübra Ünal**
 * **Yaren Arslan**
 * **Feyza Demirel**
+
+## 📸 Application Screenshots (UI Showcase)
+<img width="1208" height="699" alt="Ekran görüntüsü 2026-06-22 211211" src="https://github.com/user-attachments/assets/5671b4a8-7108-413c-8d57-3ebae0c0ffdc" />
+<img width="1212" height="695" alt="Ekran görüntüsü 2026-05-10 212348" src="https://github.com/user-attachments/assets/c60389db-2af4-4df9-9e51-d0187617f27c" />
+<img width="514" height="551" alt="Ekran görüntüsü 2026-05-10 211437" src="https://github.com/user-attachments/assets/d9031b4b-2c68-4d18-a526-9875701549d4" />
+<img width="428" height="586" alt="Ekran görüntüsü 2026-05-10 211307" src="https://github.com/user-attachments/assets/1dacb9fc-3af2-422b-aa66-7a936d15db0a" />
